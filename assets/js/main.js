@@ -65,6 +65,15 @@
     if (e.persisted) document.body.classList.remove('leaving');
   });
 
+  // ---------- Videos with a start time: begin there and loop back to it ----------
+  document.querySelectorAll('video[data-start]').forEach(function (v) {
+    var start = parseFloat(v.getAttribute('data-start')) || 0;
+    function toStart() { try { v.currentTime = start; } catch (e) {} }
+    v.addEventListener('loadedmetadata', toStart);
+    v.addEventListener('ended', function () { toStart(); v.play(); });
+    if (v.readyState >= 1) toStart();
+  });
+
   // ---------- Image carousel (Waterwise Connections) ----------
   document.querySelectorAll('[data-carousel]').forEach(function (c) {
     var track = c.querySelector('.track');
