@@ -77,15 +77,27 @@
     var vids = groups[key].map(function (v) {
       return { el: v, start: parseFloat(v.getAttribute('data-start')) || 0, end: parseFloat(v.getAttribute('data-end')) || Infinity };
     });
+    var seeking = false;
+    // pause all, jump all to their start, and only play once every video has arrived
     function restart() {
+      if (seeking) return;
+      seeking = true;
+      var pending = vids.length;
       vids.forEach(function (x) {
-        try { x.el.currentTime = x.start; } catch (e) {}
-        var p = x.el.play();
-        if (p && p.catch) p.catch(function () {});
+        x.el.pause();
+        x.el.addEventListener('seeked', function () {
+          if (--pending > 0) return;
+          seeking = false;
+          vids.forEach(function (y) {
+            var p = y.el.play();
+            if (p && p.catch) p.catch(function () {});
+          });
+        }, { once: true });
+        x.el.currentTime = x.start;
       });
     }
     function check() {
-      var done = vids.some(function (x) { return x.el.currentTime >= x.end - 0.05 || x.el.ended; });
+      var done = !seeking && vids.some(function (x) { return x.el.currentTime >= x.end - 0.05 || x.el.ended; });
       if (done) restart();
       requestAnimationFrame(check);
     }
@@ -94,7 +106,7 @@
       function onMeta() { if (++ready === vids.length) { restart(); requestAnimationFrame(check); } }
       if (x.el.readyState >= 1) onMeta(); else x.el.addEventListener('loadedmetadata', onMeta, { once: true });
       // the #t=start,end fragment pauses playback at the end; restart the whole group then
-      x.el.addEventListener('pause', function () { if (x.el.currentTime >= x.end - 0.3) restart(); });
+      x.el.addEventListener('pause', function () { if (!seeking && x.el.currentTime >= x.end - 0.3) restart(); });
     });
   });
 
