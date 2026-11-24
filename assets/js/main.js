@@ -65,13 +65,37 @@
     if (e.persisted) document.body.classList.remove('leaving');
   });
 
-  // ---------- Videos with a start time: begin there and loop back to it ----------
-  document.querySelectorAll('video[data-start]').forEach(function (v) {
-    var start = parseFloat(v.getAttribute('data-start')) || 0;
-    function toStart() { try { v.currentTime = start; } catch (e) {} }
-    v.addEventListener('loadedmetadata', toStart);
-    v.addEventListener('ended', function () { toStart(); v.play(); });
-    if (v.readyState >= 1) toStart();
+  // ---------- Video fragments: loop only [data-start, data-end] ----------
+  // Videos sharing a data-sync name start together and jump back together,
+  // so equally long fragments stay in step with each other.
+  var groups = {};
+  document.querySelectorAll('video[data-start]').forEach(function (v, n) {
+    var key = v.getAttribute('data-sync') || ('solo' + n);
+    (groups[key] = groups[key] || []).push(v);
+  });
+  Object.keys(groups).forEach(function (key) {
+    var vids = groups[key].map(function (v) {
+      return { el: v, start: parseFloat(v.getAttribute('data-start')) || 0, end: parseFloat(v.getAttribute('data-end')) || Infinity };
+    });
+    function restart() {
+      vids.forEach(function (x) {
+        try { x.el.currentTime = x.start; } catch (e) {}
+        var p = x.el.play();
+        if (p && p.catch) p.catch(function () {});
+      });
+    }
+    function check() {
+      var done = vids.some(function (x) { return x.el.currentTime >= x.end - 0.05 || x.el.ended; });
+      if (done) restart();
+      requestAnimationFrame(check);
+    }
+    var ready = 0;
+    vids.forEach(function (x) {
+      function onMeta() { if (++ready === vids.length) { restart(); requestAnimationFrame(check); } }
+      if (x.el.readyState >= 1) onMeta(); else x.el.addEventListener('loadedmetadata', onMeta, { once: true });
+      // the #t=start,end fragment pauses playback at the end; restart the whole group then
+      x.el.addEventListener('pause', function () { if (x.el.currentTime >= x.end - 0.3) restart(); });
+    });
   });
 
   // ---------- Image carousel (Waterwise Connections) ----------
