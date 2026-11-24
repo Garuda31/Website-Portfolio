@@ -96,9 +96,20 @@
         x.el.currentTime = x.start;
       });
     }
+    // the longest fragment sets the rhythm; shorter ones loop on their own in between
+    var longest = vids.reduce(function (a, b) { return (b.end - b.start) > (a.end - a.start) ? b : a; });
+    function atEnd(x) { return x.el.currentTime >= x.end - 0.05 || x.el.ended; }
     function check() {
-      var done = !seeking && vids.some(function (x) { return x.el.currentTime >= x.end - 0.05 || x.el.ended; });
-      if (done) restart();
+      if (!seeking) {
+        if (atEnd(longest)) restart();
+        else vids.forEach(function (x) {
+          if (x !== longest && atEnd(x)) {
+            x.el.currentTime = x.start;
+            var p = x.el.play();
+            if (p && p.catch) p.catch(function () {});
+          }
+        });
+      }
       requestAnimationFrame(check);
     }
     var ready = 0;
@@ -106,7 +117,7 @@
       function onMeta() { if (++ready === vids.length) { restart(); requestAnimationFrame(check); } }
       if (x.el.readyState >= 1) onMeta(); else x.el.addEventListener('loadedmetadata', onMeta, { once: true });
       // the #t=start,end fragment pauses playback at the end; restart the whole group then
-      x.el.addEventListener('pause', function () { if (!seeking && x.el.currentTime >= x.end - 0.3) restart(); });
+      x.el.addEventListener('pause', function () { if (!seeking && x === longest && x.el.currentTime >= x.end - 0.3) restart(); });
     });
   });
 
