@@ -123,7 +123,7 @@
 
   // ---------- Image carousel (Waterwise Connections) ----------
   // Autoplay: starts once the carousel is mostly in view, shows each image for DWELL ms,
-  // pauses on hover / off-screen / hidden tab, wraps from the last image to the first,
+  // pauses only while off-screen or in a hidden tab, wraps from the last image to the first,
   // and stops for good as soon as the visitor browses by hand.
   var DWELL = 6000;
   document.querySelectorAll('[data-carousel]').forEach(function (c) {
@@ -170,9 +170,9 @@
 
     // ----- autoplay -----
     var auto = !reduceMotion, timer = null, started = 0, remaining = DWELL;
-    var inView = false, hovering = false, focused = false;
+    var inView = false;
     c.style.setProperty('--dwell', DWELL / 1000 + 's');
-    function canRun() { return auto && inView && !hovering && !focused && !document.hidden; }
+    function canRun() { return auto && inView && !document.hidden; }
     function schedule() {
       clearTimeout(timer); timer = null;
       c.classList.toggle('paused', !canRun());
@@ -200,10 +200,6 @@
         update();
       }, { threshold: [0, 0.6, 1] }).observe(viewport);
     } else { inView = true; }
-    c.addEventListener('mouseenter', function () { hovering = true; update(); });
-    c.addEventListener('mouseleave', function () { hovering = false; update(); });
-    c.addEventListener('focusin', function () { focused = true; update(); });
-    c.addEventListener('focusout', function () { focused = false; update(); });
     document.addEventListener('visibilitychange', update);
 
     // ----- manual browsing (always stops autoplay) -----
