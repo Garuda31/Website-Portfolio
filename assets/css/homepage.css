@@ -26,6 +26,9 @@
 
 /* ---------- Projects: graduation project large, the rest three across ---------- */
 .home .work { padding: 104px var(--pad) 120px; }
+/* master / bachelor groups */
+.home .work-group + .work-group { margin-top: 104px; }
+.home .group-head { margin-bottom: 28px; }
 
 /* every card: white frame, fixed 3:2 image, text below */
 .home .card { padding: 14px; height: 100%; }
@@ -136,6 +139,7 @@
   .home .work-head { align-items: flex-start; margin-bottom: 36px; }
   .home .card-feature { margin-bottom: 24px; }
   .home .cards { grid-template-columns: 1fr; gap: 20px; }
+  .home .work-group + .work-group { margin-top: 64px; }
   .home .card-desc, .home .card-feature .card-desc, .home .lead { font-size: 14px; }
   .home .card-title { margin-bottom: 0; }
   .home .card-media img:not(.rot-left) { position: absolute; }
