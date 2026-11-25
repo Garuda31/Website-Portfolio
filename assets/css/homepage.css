@@ -11,14 +11,7 @@
 
 /* ---------- Intro ---------- */
 .home .intro { padding: 88px var(--pad) 96px; gap: 24px; }
-.intro-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 32px 48px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
+.home .intro .intro-lead { margin-top: 4px; }
 .intro-lead {
   max-width: 560px;
   font-size: 18px;
@@ -26,28 +19,13 @@
   letter-spacing: -0.02em;
   color: var(--ink);
 }
-.intro-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-.btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  min-height: 44px; padding: 0 22px;
-  font-size: 15px; font-weight: 500; line-height: 1;
-  border: 1px solid var(--ink); border-radius: 100px;
-  transition: transform .25s var(--ease), background-color .25s var(--ease), color .25s var(--ease);
-}
-.btn:hover { transform: translateY(-1px); }
-.btn-solid { background: var(--ink); color: var(--white); }
-.btn-solid:hover { background: #10394a; }
-.btn-line { background: transparent; color: var(--ink); }
-.btn-line:hover { background: var(--white); }
 
 /* ---------- Section headings: one style for the whole page ---------- */
 .home .work-head { align-items: flex-end; margin-bottom: 56px; }
 .home .work-sub { padding-top: 0; }
 
-/* ---------- Project groups ---------- */
-.home .work { padding: 104px var(--pad) 120px; border-top: 1px solid rgba(136, 170, 178, .45); }
-.home .work-group + .work-group { margin-top: 112px; }
-.home .group-head { margin-bottom: 32px; }
+/* ---------- Projects: graduation project large, the rest three across ---------- */
+.home .work { padding: 104px var(--pad) 120px; }
 
 /* every card: white frame, fixed 3:2 image, text below */
 .home .card { padding: 14px; height: 100%; }
@@ -63,27 +41,29 @@
   transition: transform .6s var(--ease);
 }
 .home .card:hover .card-media img:not(.rot-left) { transform: scale(1.02); }
-.home .card-title { min-height: 0; font-size: 28px; line-height: 1.05; }
-.home .card-body { padding: 20px 6px 6px; gap: 12px; flex: 1; }
+.home .card-title { min-height: 0; font-size: 24px; line-height: 1.05; }
+.home .card-body { padding: 18px 4px 4px; gap: 10px; flex: 1; }
 .home .card-meta { order: -1; }
 .home .tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .home .tag { padding: 2px 6px; }
-.home .card-desc { font-size: 16px; color: var(--ink); }
+.home .card-desc { font-size: 15px; color: var(--ink); }
 .home .card-cta { margin-top: auto; padding-top: 6px; font-size: 14px; }
 
-/* lead project of each group: large, image left, text right */
+/* graduation project: large, image left, text right */
 .home .card-feature {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 .home .card-feature .card-media { aspect-ratio: 16 / 10; }
 .home .card-feature .card-body { padding: 8px 18px 8px 36px; justify-content: center; gap: 14px; }
 .home .card-feature .card-cta { margin-top: 10px; }
 .home .card-feature .card-title { font-size: clamp(32px, 3.2vw, 46px); line-height: 1; }
+.home .card-feature .card-desc, .home .card-feature .card-title { max-width: 30ch; }
+.home .card-feature .card-desc { max-width: 42ch; }
 .home .card-feature .card-desc { font-size: 17px; }
 
-.home .cards { gap: 24px; align-items: stretch; }
+.home .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px 24px; align-items: stretch; }
 
 /* ---------- Profile ---------- */
 .home .profile { padding: 104px var(--pad) 112px; }
@@ -142,7 +122,8 @@
   .home .card-feature .card-body { padding: 22px 6px 6px; }
   .home .card-desc, .home .card-feature .card-desc { font-size: 15px; }
   .home .lead { font-size: 15px; }
-  .home .card-title { font-size: 24px; }
+  .home .card-title { font-size: 22px; }
+  .home .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* ---------- Phone ---------- */
@@ -151,12 +132,10 @@
   .home .hero-grid { max-width: none; }
   .home .intro { padding: 56px var(--pad) 64px; }
   .intro-lead { font-size: 16px; }
-  .intro-actions { width: 100%; }
-  .btn { flex: 1 1 auto; justify-content: center; }
   .home .work { padding: 72px var(--pad) 80px; }
   .home .work-head { align-items: flex-start; margin-bottom: 36px; }
-  .home .work-group + .work-group { margin-top: 72px; }
-  .home .card-feature { margin-bottom: 16px; }
+  .home .card-feature { margin-bottom: 24px; }
+  .home .cards { grid-template-columns: 1fr; gap: 20px; }
   .home .card-desc, .home .card-feature .card-desc, .home .lead { font-size: 14px; }
   .home .card-title { margin-bottom: 0; }
   .home .card-media img:not(.rot-left) { position: absolute; }
