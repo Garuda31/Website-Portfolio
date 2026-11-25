@@ -336,9 +336,10 @@ h1, h2, h3, h4, p { margin: 0; }
 }
 .next-bar:hover { box-shadow: 0 8px 24px rgba(0, 0, 0, .1); }
 
-/* signature: per-letter wave that follows the cursor */
+/* signature: the name bends in one smooth wave around the cursor */
 .sig { padding: 8px 0 56px; text-align: center; }
-.sig-text { display: inline-block; padding: 16px 0; font-size: 16px; color: var(--ink); cursor: default; }
+/* a taller hover area (same layout) so it is clear whether the cursor comes from above or below */
+.sig-text { display: inline-block; padding: 26px 32px; margin: -10px -32px; font-size: 16px; color: var(--ink); cursor: default; }
 .sig-text span { display: inline-block; will-change: transform; }
 
 /* ---------- Reveal on scroll ---------- */
