@@ -57,14 +57,15 @@ h1, h2, h3, h4, p { margin: 0; }
   line-height: 1.55;
   letter-spacing: -0.02em;
 }
-/* running text forms a clean block: justified, with hyphenation so word gaps stay even */
+/* running text forms a clean block: justified, whole words only (no hyphen at a line end) */
 .lead, .content p {
   text-align: justify;
   text-justify: inter-word;
-  -webkit-hyphens: auto;
-  hyphens: auto;
-  hyphenate-limit-chars: 7 3 3;
+  -webkit-hyphens: manual;
+  hyphens: manual;
 }
+/* words that already contain a hyphen stay on one line */
+.lead .nw, .content p .nw { white-space: nowrap; }
 
 /* ---------- Navigation (transparent bar, only the pills are visible) ---------- */
 .site-nav {
