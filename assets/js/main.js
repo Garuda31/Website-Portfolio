@@ -122,30 +122,110 @@
   });
 
   // ---------- Image carousel (Waterwise Connections) ----------
+  // Autoplay: starts once the carousel is mostly in view, shows each image for DWELL ms,
+  // pauses on hover / off-screen / hidden tab, wraps from the last image to the first,
+  // and stops for good as soon as the visitor browses by hand.
+  var DWELL = 6000;
   document.querySelectorAll('[data-carousel]').forEach(function (c) {
     var track = c.querySelector('.track');
     var slides = track.children.length;
     var prev = c.querySelector('.prev'), next = c.querySelector('.next');
     var i = 0;
+
+    // wrap the track and arrows in a viewport so the dots can sit below the image
+    var viewport = document.createElement('div');
+    viewport.className = 'viewport';
+    c.insertBefore(viewport, track);
+    viewport.appendChild(track); viewport.appendChild(prev); viewport.appendChild(next);
+
+    var counter = document.createElement('span');
+    counter.className = 'counter';
+    viewport.appendChild(counter);
+
+    var dotsWrap = document.createElement('div');
+    dotsWrap.className = 'dots';
+    var dots = [];
+    for (var n = 0; n < slides; n++) {
+      var d = document.createElement('button');
+      d.type = 'button';
+      d.className = 'dot';
+      d.setAttribute('aria-label', 'Image ' + (n + 1) + ' of ' + slides);
+      d.innerHTML = '<span class="fill"></span>';
+      (function (k) { d.addEventListener('click', function () { manual(); go(k); }); })(n);
+      dotsWrap.appendChild(d);
+      dots.push(d);
+    }
+    c.appendChild(dotsWrap);
+
     function go(n) {
-      i = Math.max(0, Math.min(slides - 1, n));
+      i = (n + slides) % slides;
       var w = track.children[0].getBoundingClientRect().width + 10;
       track.style.transform = 'translateX(' + (-i * w) + 'px)';
-      prev.disabled = i === 0;
-      next.disabled = i === slides - 1;
+      counter.textContent = (i + 1) + ' / ' + slides;
+      dots.forEach(function (d, k) { d.setAttribute('aria-current', k === i ? 'true' : 'false'); });
+      // restart the dot timer animation for the new slide
+      if (auto) { var f = dots[i].firstChild; f.style.animation = 'none'; void f.offsetWidth; f.style.animation = ''; }
+      remaining = DWELL;
     }
-    prev.addEventListener('click', function () { go(i - 1); });
-    next.addEventListener('click', function () { go(i + 1); });
-    window.addEventListener('resize', function () { go(i); });
+
+    // ----- autoplay -----
+    var auto = !reduceMotion, timer = null, started = 0, remaining = DWELL;
+    var inView = false, hovering = false, focused = false;
+    c.style.setProperty('--dwell', DWELL / 1000 + 's');
+    function canRun() { return auto && inView && !hovering && !focused && !document.hidden; }
+    function schedule() {
+      clearTimeout(timer); timer = null;
+      c.classList.toggle('paused', !canRun());
+      if (!canRun()) return;
+      started = Date.now();
+      timer = setTimeout(function () { go(i + 1); schedule(); }, remaining);
+    }
+    function hold() {
+      if (timer) { remaining = Math.max(0, remaining - (Date.now() - started)); clearTimeout(timer); timer = null; }
+      c.classList.toggle('paused', true);
+    }
+    function update() { if (canRun()) schedule(); else hold(); }
+    function manual() {
+      if (!auto) return;
+      auto = false;
+      clearTimeout(timer); timer = null;
+      c.classList.remove('auto', 'paused');
+      counter.setAttribute('aria-live', 'polite');
+    }
+    if (auto) c.classList.add('auto');
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        inView = entries[0].intersectionRatio >= 0.6;
+        update();
+      }, { threshold: [0, 0.6, 1] }).observe(viewport);
+    } else { inView = true; }
+    c.addEventListener('mouseenter', function () { hovering = true; update(); });
+    c.addEventListener('mouseleave', function () { hovering = false; update(); });
+    c.addEventListener('focusin', function () { focused = true; update(); });
+    c.addEventListener('focusout', function () { focused = false; update(); });
+    document.addEventListener('visibilitychange', update);
+
+    // ----- manual browsing (always stops autoplay) -----
+    prev.addEventListener('click', function () { manual(); go(i - 1); });
+    next.addEventListener('click', function () { manual(); go(i + 1); });
+    c.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft') { manual(); go(i - 1); e.preventDefault(); }
+      if (e.key === 'ArrowRight') { manual(); go(i + 1); e.preventDefault(); }
+    });
+    window.addEventListener('resize', function () {
+      track.style.transition = 'none'; go(i); void track.offsetWidth; track.style.transition = '';
+    });
     var x0 = null;
     c.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
     c.addEventListener('touchend', function (e) {
       if (x0 === null) return;
       var dx = e.changedTouches[0].clientX - x0;
-      if (Math.abs(dx) > 40) go(i + (dx < 0 ? 1 : -1));
+      if (Math.abs(dx) > 40) { manual(); go(i + (dx < 0 ? 1 : -1)); }
       x0 = null;
     });
     go(0);
+    update();
   });
 
   // ---------- Signature: letters rise in a wave around the cursor ----------
