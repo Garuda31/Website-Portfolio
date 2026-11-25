@@ -188,6 +188,16 @@ h1, h2, h3, h4, p { margin: 0; }
 .work-title { font-family: var(--display); font-weight: 600; font-size: 24px; line-height: 1; letter-spacing: -0.3px; }
 .work-sub { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; text-align: right; padding-top: 11px; }
 .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+/* master / bachelor groups */
+.work-group + .work-group { margin-top: 88px; }
+.group-head {
+  display: flex; justify-content: space-between; align-items: flex-end; gap: 24px;
+  padding-top: 20px; margin-bottom: 28px;
+  border-top: 1px solid var(--line);
+}
+.group-name { display: flex; flex-direction: column; gap: 8px; }
+.group-title { font-family: var(--display); font-weight: 600; font-size: 22px; line-height: 1.1; letter-spacing: -0.2px; color: var(--ink); }
+.group-count { white-space: nowrap; padding-bottom: 3px; }
 .card {
   background: var(--white);
   border: 1px solid var(--line);
@@ -400,6 +410,9 @@ h1, h2, h3, h4, p { margin: 0; }
   .work-head { flex-direction: column; margin-bottom: 32px; }
   .work-sub { align-items: flex-start; text-align: left; padding-top: 0; }
   .cards { grid-template-columns: 1fr; gap: 16px; }
+  .work-group + .work-group { margin-top: 56px; }
+  .group-head { flex-direction: column; align-items: flex-start; gap: 6px; margin-bottom: 20px; }
+  .group-title { font-size: 20px; }
   .card-title { font-size: 24px; min-height: 0; margin-bottom: 14px; }
   .card-media { height: auto; aspect-ratio: 616 / 330; }
   .card-media img { position: static; transform: none; width: 100% !important; height: 100% !important; object-fit: cover; }
