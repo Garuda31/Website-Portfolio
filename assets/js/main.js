@@ -224,7 +224,10 @@
     update();
   });
 
-  // ---------- Signature: letters rise in a wave around the cursor ----------
+  // ---------- Signature: the name bends in one smooth wave around the cursor ----------
+  // Every letter follows the same bell curve centred on a smoothed cursor position, so
+  // neighbouring letters move together. Coming in from above bends the name down,
+  // coming in from below bends it up; leaving lets it spring back.
   var sig = document.querySelector('.sig-text');
   if (sig) {
     var text = sig.textContent;
@@ -233,47 +236,61 @@
     var letters = text.split('').map(function (ch) {
       var s = document.createElement('span');
       s.setAttribute('aria-hidden', 'true');
-      s.textContent = ch === ' ' ? ' ' : ch;
+      s.textContent = ch === ' ' ? '\u00a0' : ch;
       sig.appendChild(s);
-      return { el: s, x: 0, v: 0, target: 0, pending: null, due: 0 };
+      return { el: s, cx: 0, y: 0, v: 0 };
     });
 
-    var RADIUS = 64, LIFT = 12, STIFFNESS = 260, DAMPING = 16, DELAY_PER_PX = 1.5;
+    var AMP = 10;          // px the letter right at the cursor moves
+    var SIGMA = 38;        // px, width of the bell curve (about 8 letters)
+    var STIFFNESS = 170, DAMPING = 19;   // soft spring, a touch of overshoot
+    var FOLLOW = 12;       // how quickly the wave centre glides after the cursor (1/s)
+
+    var mouseX = 0, waveX = 0, amp = 0, targetAmp = 0;
     var running = false, last = 0;
 
-    function setTargets(clientX) {
-      var now = performance.now();
-      letters.forEach(function (l) {
-        var r = l.el.getBoundingClientRect();
-        var d = clientX === null ? RADIUS : Math.abs(clientX - (r.left + r.width / 2));
-        var f = Math.max(0, 1 - Math.pow(d / RADIUS, 2));
-        // letters further from the cursor follow a little later, which gives the wave
-        l.pending = -LIFT * f;
-        l.due = now + (clientX === null ? 0 : d * DELAY_PER_PX);
-      });
-      if (!running) { running = true; last = now; requestAnimationFrame(step); }
+    function measure() {
+      var left = sig.getBoundingClientRect().left;
+      letters.forEach(function (l) { var r = l.el.getBoundingClientRect(); l.cx = r.left + r.width / 2 - left; });
     }
 
     function step(now) {
       var dt = Math.min(0.032, (now - last) / 1000);
       last = now;
-      var moving = false;
+      var k = 1 - Math.exp(-FOLLOW * dt);
+      waveX += (mouseX - waveX) * k;
+      amp += (targetAmp - amp) * k;
+      var moving = Math.abs(mouseX - waveX) > 0.1 || Math.abs(targetAmp - amp) > 0.01;
       letters.forEach(function (l) {
-        if (l.pending !== null && now >= l.due) { l.target = l.pending; l.pending = null; }
-        var a = -STIFFNESS * (l.x - l.target) - DAMPING * l.v;
+        var d = (l.cx - waveX) / SIGMA;
+        var target = amp * Math.exp(-0.5 * d * d);
+        var a = -STIFFNESS * (l.y - target) - DAMPING * l.v;
         l.v += a * dt;
-        l.x += l.v * dt;
-        if (Math.abs(l.x - l.target) > 0.05 || Math.abs(l.v) > 0.05 || l.pending !== null) moving = true;
-        else { l.x = l.target; l.v = 0; }
-        l.el.style.transform = l.x ? 'translateY(' + l.x.toFixed(2) + 'px)' : '';
+        l.y += l.v * dt;
+        if (Math.abs(l.y - target) > 0.02 || Math.abs(l.v) > 0.02) moving = true;
+        else { l.y = target; l.v = 0; }
+        l.el.style.transform = Math.abs(l.y) > 0.01 ? 'translateY(' + l.y.toFixed(2) + 'px)' : '';
       });
       if (moving) requestAnimationFrame(step);
       else running = false;
     }
+    function kick() {
+      if (!running) { running = true; last = performance.now(); requestAnimationFrame(step); }
+    }
+    function localX(e) { return e.clientX - sig.getBoundingClientRect().left; }
 
     if (!reduceMotion) {
-      sig.addEventListener('mousemove', function (e) { setTargets(e.clientX); });
-      sig.addEventListener('mouseleave', function () { setTargets(null); });
+      sig.addEventListener('mouseenter', function (e) {
+        measure();
+        var r = sig.getBoundingClientRect();
+        var fromAbove = e.clientY < r.top + r.height / 2;
+        mouseX = localX(e);
+        if (Math.abs(amp) < 0.5) waveX = mouseX;   // start the wave where the cursor touches
+        targetAmp = fromAbove ? AMP : -AMP;         // positive translateY = down
+        kick();
+      });
+      sig.addEventListener('mousemove', function (e) { mouseX = localX(e); kick(); });
+      sig.addEventListener('mouseleave', function (e) { mouseX = localX(e); targetAmp = 0; kick(); });
     }
   }
 })();
